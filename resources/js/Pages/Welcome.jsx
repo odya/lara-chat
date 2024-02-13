@@ -1,6 +1,9 @@
 import { Link, Head } from '@inertiajs/react';
+import { useRoute } from 'ziggy-js';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
+    const route = useRoute();
+
     return (
         <>
             <Head title="Welcome" />

@@ -8,6 +8,7 @@ server {
 server {
     listen  443 ssl default_server;
     server_name ${SERVER_NAME};
+    port_in_redirect on;
 
     # Self signed certificates
     # Don't use them in a production server!

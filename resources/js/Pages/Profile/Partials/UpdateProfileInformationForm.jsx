@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
+import { useRoute } from 'ziggy-js';
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }) {
     const user = usePage().props.auth.user;
@@ -12,6 +13,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
         name: user.name,
         email: user.email,
     });
+    const route = useRoute();
 
     const submit = (e) => {
         e.preventDefault();

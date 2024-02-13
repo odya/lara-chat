@@ -4,79 +4,74 @@ import {ChatContext} from "@/Context/ChatContext.jsx";
 
 export default function Chat({children}) {
     const {auth} = usePage().props;
-    const [dialogsChannel, setDialogsChannel] = useState(undefined);
-    const [presChannel, setPresChannel] = useState(undefined);
     const [onlineContactIds, setOnlineContactIds] = useState([]);
     const [wsMessages, setWsMessages] = useState([]);
 
     useEffect(() => {
         const dialogsChannelName = `dialogs.` + auth?.user.id;
+        const dialogsChannelInternalName = `private-encrypted-${dialogsChannelName}`;
+        const presenceChannelName = `presence`;
+        const presenceChannelInternalName = `presence-${presenceChannelName}`;
         const dialogMessageSentEventName = 'DialogMessageSent';
-        console.log("layout Chat setup");
 
-        const connectDialogsChannel = () => {
-            const channel = Echo.private(dialogsChannelName);
-            console.log('ws connect');
-            return channel;
-        }
-        const tmpDialogsChannel = (dialogsChannel === undefined) ? connectDialogsChannel() : dialogsChannel;
-
-        const connectPresChannel = () => {
-            return Echo.join('presence')
-                .error((error) => {
-                    console.error('pres error', error);
-                })
-                .joining((user) => {
-                    console.log('pres joining', user);
-                    setOnlineContactIds(onlineContactIds.concat([user.id]));
-                    // axios.put(route("chat.user-presence", 1), {});
-                })
-                .leaving((user) => {
-                    console.log('pres leaving', user);
-                    const ids = onlineContactIds.filter(function (id) {
-                        return id !== user.id;
-                    });
-                    setOnlineContactIds(ids);
-                    // axios.put(route("chat.user-presence", 0), {});
-                })
-                .listen('UserOnline', (e) => {
-                    console.log('pres UserOnline')
-                    // this.friend = e.user;
-                })
-                .listen('UserOffline', (e) => {
-                    console.log('pres UserOffline')
-                    // this.friend = e.user;
+        const updateOnlineContactIds = (channel) => {
+            const members = channel.subscription.members;
+            if(members.me !== null) {
+                console.log('presenceChannel updateOnlineContactIds', members);
+                let ids = [];
+                members.each((member) => {
+                    ids.push(parseInt(member.id));
                 });
-        }
-        const tmpPresChannel = (presChannel === undefined) ? connectPresChannel() : presChannel;
-
-        if(onlineContactIds.length == 0 && tmpPresChannel.subscription.members) {
-            let ids = [];
-            tmpPresChannel.subscription.members.each((onlineContact) => {
-                ids.push(parseInt(onlineContact.id));
-            });
-            console.log('pres onlineContacts', ids);
-            setOnlineContactIds(ids);
+                setOnlineContactIds(ids);
+            }
         }
 
-        tmpDialogsChannel.listen(dialogMessageSentEventName, (e) => {
+        let presenceChannel = Echo.connector.channels[presenceChannelInternalName]
+        console.log('Looking for presenceChannel', presenceChannel)
+        if(presenceChannel === undefined) {
+            presenceChannel = Echo.join(presenceChannelName);
+        } else {
+            updateOnlineContactIds(presenceChannel);
+        }
+        presenceChannel
+            .here((members) => {
+                console.log('presenceChannel here', members.length);
+                updateOnlineContactIds(presenceChannel);
+            })
+            .joining((user) => {
+                console.log('presenceChannel joining', user);
+                updateOnlineContactIds(presenceChannel);
+            })
+            .leaving((user) => {
+                console.log('presenceChannel leaving', user);
+                updateOnlineContactIds(presenceChannel);
+            })
+            .error((error) => {
+                console.error('presenceChannel error', error);
+            })
+
+        let dialogsChannel = Echo.connector.channels[dialogsChannelInternalName]
+        console.log('Looking for dialogsChannel', dialogsChannel)
+        if(dialogsChannel === undefined) {
+            dialogsChannel = Echo.encryptedPrivate(dialogsChannelName);
+            console.log('dialogsChannel connect');
+        }
+        dialogsChannel.listen(dialogMessageSentEventName, (e) => {
             console.log('New dialog message:', e);
             setWsMessages(wsMessages.concat([e.message]));
         });
-        console.log(`ws start listening ${dialogMessageSentEventName}`);
-
-        setDialogsChannel(tmpDialogsChannel);
-        setPresChannel(tmpPresChannel);
+        console.log(`dialogsChannel start listening ${dialogMessageSentEventName}`);
 
         return () => {
-            tmpDialogsChannel.stopListening(dialogMessageSentEventName);
-            console.log(`ws stop listening ${dialogMessageSentEventName}`);
+            dialogsChannel.stopListening(dialogMessageSentEventName);
+            console.log(`dialogsChannel stop listening ${dialogMessageSentEventName}`);
 
-            console.log("layout Chat cleanup");
+            presenceChannel.subscription.unbind_all()
+            console.log(`presenceChannel stop listening all`)
         };
 
 
-    }, [dialogsChannel, presChannel, wsMessages, onlineContactIds]);
+    }, [wsMessages]);
 
     return (
         <ChatContext.Provider value={{wsMessages, setWsMessages, onlineContactIds}}>

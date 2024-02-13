@@ -8,7 +8,6 @@ import {ChatContext} from "@/Context/ChatContext.jsx";
 
 const Chat = ({auth, contacts, currentContact, serverMessages}) => {
     const {wsMessages, setWsMessages, onlineContactIds} = useContext(ChatContext);
-    // const [messages, setMessages] = useState(serverMessages);
 
     useEffect(() => {
         setWsMessages([]);

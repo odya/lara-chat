@@ -3,7 +3,9 @@
 namespace App\Events;
 
 use App\Models\Message;
+use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\EncryptedPrivateChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -14,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 
 class DialogMessageSent implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets, SerializesModels, UsePusherChannelConventions;
 
     public Message $message;
 
@@ -34,8 +36,8 @@ class DialogMessageSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('dialogs.' . $this->message->sender_user_id),
-            new PrivateChannel('dialogs.' . $this->message->receiver_user_id)
+            new EncryptedPrivateChannel('dialogs.' . $this->message->sender_user_id),
+            new EncryptedPrivateChannel('dialogs.' . $this->message->receiver_user_id)
         ];
     }
 }

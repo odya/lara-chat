@@ -6,8 +6,10 @@ use App\Events\DialogMessageSent;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,6 +42,7 @@ class ChatController extends Controller
 
     /**
      * @return \Illuminate\Http\JsonResponse
+     * @throws \Throwable
      */
     public function postMessage(Request $request, int $receiverId)
     {
@@ -47,23 +50,17 @@ class ChatController extends Controller
             'message' => 'required|string',
         ]);
 
-        try {
-            $message = new Message([
-                'sender_user_id' => Auth::id(),
-                'receiver_user_id' => $receiverId,
-                'message' => $request->message
-            ]);
-            $success = $message->save();
-            event(new DialogMessageSent($message));
+        $message = new Message([
+            'sender_user_id' => Auth::id(),
+            'receiver_user_id' => $receiverId,
+            'message' => $request->message
+        ]);
+        $success = $message->save();
+        event(new DialogMessageSent($message));
 
-            return response()->json([
-                'success' => $success,
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'errors' => [$e->getMessage()]
-            ], 400);
-        }
+        return response()->json([
+            'success' => $success,
+        ]);
     }
 
 }

@@ -1,10 +1,12 @@
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import TextInput from "../TextInput";
+import { useRoute } from 'ziggy-js';
 
 export default function ChatNewMessageForm({ receiverUser }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         message: "",
     });
+    const route = useRoute();
 
     const handleChange = (event) => {
         setData(event.target.name, event.target.value);

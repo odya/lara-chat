@@ -3,17 +3,13 @@
 namespace App\Broadcasting;
 
 use App\Models\User;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\EncryptedPrivateChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Support\Facades\Auth;
 
 class DialogsChannel
 {
-    /**
-     * Create a new channel instance.
-     */
-    public function __construct()
-    {
-        //
-    }
 
     /**
      * Authenticate the user's access to the channel.

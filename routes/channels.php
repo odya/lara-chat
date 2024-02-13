@@ -17,6 +17,6 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('dialogs.{userId}', DialogsChannel::class);
 
 Broadcast::channel('presence', function ($user) {
-    return $user;
+    return ['id' => $user->id];
 });
 
