@@ -9,7 +9,7 @@ export default function Chat({children}) {
 
     useEffect(() => {
         const dialogsChannelName = `dialogs.` + auth?.user.id;
-        const dialogsChannelInternalName = `private-encrypted-${dialogsChannelName}`;
+        const dialogsChannelInternalName = `private-${dialogsChannelName}`;
         const presenceChannelName = `presence`;
         const presenceChannelInternalName = `presence-${presenceChannelName}`;
         const dialogMessageSentEventName = 'DialogMessageSent';
@@ -53,7 +53,7 @@ export default function Chat({children}) {
         let dialogsChannel = Echo.connector.channels[dialogsChannelInternalName]
         console.log('Looking for dialogsChannel', dialogsChannel)
         if(dialogsChannel === undefined) {
-            dialogsChannel = Echo.encryptedPrivate(dialogsChannelName);
+            dialogsChannel = Echo.private(dialogsChannelName);
             console.log('dialogsChannel connect');
         }
         dialogsChannel.listen(dialogMessageSentEventName, (e) => {
@@ -71,7 +71,7 @@ export default function Chat({children}) {
         };
 
 
-    }, [wsMessages]);
+    }, [wsMessages, setWsMessages]);
 
     return (
         <ChatContext.Provider value={{wsMessages, setWsMessages, onlineContactIds}}>

@@ -36,8 +36,8 @@ class DialogMessageSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new EncryptedPrivateChannel('dialogs.' . $this->message->sender_user_id),
-            new EncryptedPrivateChannel('dialogs.' . $this->message->receiver_user_id)
+            new PrivateChannel('dialogs.' . $this->message->sender_user_id),
+            new PrivateChannel('dialogs.' . $this->message->receiver_user_id)
         ];
     }
 }
